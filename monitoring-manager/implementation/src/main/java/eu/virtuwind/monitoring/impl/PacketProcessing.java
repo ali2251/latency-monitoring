@@ -74,9 +74,14 @@ public class PacketProcessing implements PacketProcessingListener {
 
 
         if(srcMac.equals("00:00:00:00:00:09")) {
-            System.out.println("Got the packet    " + System.currentTimeMillis());
-            System.out.println("latency is " + (PacketSender.sentTime - System.currentTimeMillis()) );
+            Long timeNow = System.currentTimeMillis();
+            Long latency = timeNow - PacketSender.sentTime;
 
+            LatencyMonitor.latency = latency;
+
+          /*  System.out.println("Got the packet    " + System.currentTimeMillis());
+            System.out.println("latency is " + (System.currentTimeMillis() - PacketSender.sentTime ) );
+*/
             LOG.info("Yaaay, got the packet");
             LOG.debug("YUp");
             LOG.error("Packet is here ");

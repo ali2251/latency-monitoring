@@ -51,7 +51,7 @@ public class PacketSender {
         this.packetProcessingService = packetProcessingService;
     }
 
-    public void sendPacket(MacAddress srcMacAddress1, MacAddress destMacAddress) {
+    public boolean sendPacket(long queue, String outputNodeConnector, String nodeId) {
 
 
 
@@ -59,19 +59,19 @@ public class PacketSender {
         MacAddress srcMacAddress = new MacAddress("00:00:00:00:00:09");
 
 
-        String NODE_ID = "openflow:1";
-        Long bufferId = null;
+        String NODE_ID = nodeId;
+        String nodeConnectorId = outputNodeConnector.split(":")[2];
 
         NodeRef ref = createNodeRef(NODE_ID);
-        NodeConnectorId ncId = new NodeConnectorId("openflow:1:2");
+        NodeConnectorId ncId = new NodeConnectorId(outputNodeConnector);
         NodeConnectorKey nodeConnectorKey = new NodeConnectorKey(ncId);
         NodeConnectorRef nEgressConfRef = new NodeConnectorRef(createNodeConnRef(NODE_ID, nodeConnectorKey));
 
 
 
 
-        byte[] lldpFrame = LLDPUtil.buildLldpFrame(new NodeId("openflow:1"),
-                new NodeConnectorId("openflow:1:2"), srcMacAddress, 2L);
+        byte[] lldpFrame = LLDPUtil.buildLldpFrame(new NodeId(nodeId),
+                new NodeConnectorId(outputNodeConnector), srcMacAddress, Long.parseLong(nodeConnectorId) );
 
 
             ActionBuilder actionBuilder = new ActionBuilder();
@@ -79,7 +79,7 @@ public class PacketSender {
             Action queueAction = actionBuilder
                     .setOrder(0).setAction(new SetQueueActionCaseBuilder()
                             .setSetQueueAction(new SetQueueActionBuilder()
-                                    .setQueueId((long)1)
+                                    .setQueueId(queue)
                                     .build())
                             .build())
                     .build();
@@ -88,17 +88,17 @@ public class PacketSender {
             Action outputNodeConnectorAction = actionBuilder
                     .setOrder(1).setAction(new OutputActionCaseBuilder()
                             .setOutputAction(new OutputActionBuilder()
-                                    .setOutputNodeConnector(new Uri("2"))
+                                    .setOutputNodeConnector(new Uri(nodeConnectorId))
                                     .build())
                             .build())
                     .build();
 
-            OutputActionBuilder output = new OutputActionBuilder();
+         /*   OutputActionBuilder output = new OutputActionBuilder();
             output.setMaxLength(OFConstants.OFPCML_NO_BUFFER);
             Uri value = new Uri(OutputPortValues.CONTROLLER.toString());
             output.setOutputNodeConnector(value);
             actionBuilder.setAction(new OutputActionCaseBuilder().setOutputAction(output.build()).build());
-            actionBuilder.setOrder(2);
+            actionBuilder.setOrder(2);*/
 
 
             ArrayList<Action> actions = new ArrayList<>();
@@ -116,18 +116,21 @@ public class PacketSender {
 
             Future<RpcResult<Void>> future = packetProcessingService.transmitPacket(packet);
             try {
-                sentTime = System.currentTimeMillis();
-                System.out.println("sent time is: " + sentTime);
-                System.out.println( future.get().isSuccessful());
-                System.out.println("Is Successful");
+                if (future.get().isSuccessful()) {
+                    sentTime = System.currentTimeMillis();
+                    System.out.println("sent time is: " + sentTime);
+                    System.out.println( future.get().isSuccessful());
+                    System.out.println("Is Successful");
+                    return true;
+                } else {
+                    return false;
+                }
 
-            } catch (InterruptedException e) {
+
+            } catch (Exception e) {
                 e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+                return false;
             }
-
-
 
 
 
