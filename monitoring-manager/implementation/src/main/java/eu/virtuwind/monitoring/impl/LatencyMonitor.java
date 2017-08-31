@@ -29,6 +29,7 @@ public class LatencyMonitor {
     public static Long latency = -1L;
 
     private static HashMap<Link, Long> latencies = new HashMap<>();
+    private static  HashMap<Link, Long> jitters = new HashMap<>();
     private static PacketProcessingService packetProcessingService;
 
     public LatencyMonitor(DataBroker dataBroker, PacketProcessingService packetProcessingService1){
@@ -69,6 +70,48 @@ public class LatencyMonitor {
 
     }
 
+
+    public void MeasureNextLinkJitter() {
+
+        List<Link> links = getAllLinks();
+
+        PacketSender packetSender = new PacketSender(packetProcessingService);
+
+        //remove host links
+        for(Link link: links) {
+            if(link.getSource().getSourceTp().getValue().contains("host")) {
+                links.remove(link);
+            }
+        }
+
+        for(Link link: links) {
+            latency = -1L;
+            String node_id = link.getSource().getSourceNode().getValue();
+            String node_connector_id = link.getSource().getSourceTp().getValue().split(":")[2];
+
+            boolean success = packetSender.sendPacket(0, node_connector_id,node_id  );
+            while(latency == -1) {
+                //waiting
+            }
+            //latency is now not -1
+            Long latency1 = latency;
+
+            latency = -1L;
+            packetSender.sendPacket(0, node_connector_id,node_id  );
+            while(latency == -1) {
+                //waiting
+            }
+            Long latency2 = latency;
+
+            //jitter is an absolute value
+            Long jitter = Math.abs(latency2 - latency1);
+
+            jitters.put(link, jitter);
+
+        }
+
+
+    }
 
     public static List<Link> getAllLinks() {
         List<Link> linkList = new ArrayList<>();
