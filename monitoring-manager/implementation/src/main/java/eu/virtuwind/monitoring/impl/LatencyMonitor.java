@@ -30,19 +30,40 @@ public class LatencyMonitor {
 
     private static HashMap<Link, Long> latencies = new HashMap<>();
     private static  HashMap<Link, Long> jitters = new HashMap<>();
+    private static ArrayList<Link> links = new ArrayList<>();
     private static PacketProcessingService packetProcessingService;
 
     public LatencyMonitor(DataBroker dataBroker, PacketProcessingService packetProcessingService1){
         packetProcessingService = packetProcessingService1;
         db = dataBroker;
+
     }
 
 
+
+    public void test() {
+
+        MeasureNextLink();
+
+
+
+
+
+
+        MeasureNextLinkJitter();
+
+
+
+        System.out.println("All Done");
+
+    }
 
 
     public void MeasureNextLink() {
 
         List<Link> links = getAllLinks();
+
+        System.out.println(links.toString());
 
         PacketSender packetSender = new PacketSender(packetProcessingService);
 
@@ -50,21 +71,29 @@ public class LatencyMonitor {
         for(Link link: links) {
             if(link.getSource().getSourceTp().getValue().contains("host")) {
                 links.remove(link);
+                System.out.println("link removed");
             }
         }
 
         for(Link link: links) {
+
+            System.out.println("iterating over links");
             latency = -1L;
             String node_id = link.getSource().getSourceNode().getValue();
-            String node_connector_id = link.getSource().getSourceTp().getValue().split(":")[2];
+            String node_connector_id = link.getSource().getSourceTp().getValue();
+
+            System.out.println("node connector id: " + node_connector_id);
+            System.out.println("node is: " + node_id);
 
             boolean success = packetSender.sendPacket(0, node_connector_id,node_id  );
+            System.out.println("success is: " + success);
             while(latency == -1) {
                 //waiting
             }
             //latency is now not -1
-
+            System.out.println("went past while loop and latency is: " + latency);
             latencies.put(link, latency);
+            //links.add(link);
         }
 
 
@@ -87,7 +116,7 @@ public class LatencyMonitor {
         for(Link link: links) {
             latency = -1L;
             String node_id = link.getSource().getSourceNode().getValue();
-            String node_connector_id = link.getSource().getSourceTp().getValue().split(":")[2];
+            String node_connector_id = link.getSource().getSourceTp().getValue();
 
             boolean success = packetSender.sendPacket(0, node_connector_id,node_id  );
             while(latency == -1) {
@@ -105,6 +134,8 @@ public class LatencyMonitor {
 
             //jitter is an absolute value
             Long jitter = Math.abs(latency2 - latency1);
+
+            System.out.println("jitter is: " + jitter);
 
             jitters.put(link, jitter);
 

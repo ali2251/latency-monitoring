@@ -42,13 +42,21 @@ public class MonitoringProvider implements BindingAwareProvider, AutoCloseable {
         notificationService.registerNotificationListener(packetProcessing);
 
         final PacketSender packetSender = new PacketSender(packetProcessingService);
+
+        final LatencyMonitor latencyMonitor = new LatencyMonitor(dataBroker, packetProcessingService);
+
         final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
         executor.schedule(new Runnable() {
             @Override
             public void run() {
                 System.out.println("meow");
                 LOG.info("Meow");
-                packetSender.sendPacket(new MacAddress("ae:bd:c7:94:15:ef"), new MacAddress("82:fe:07:dc:cb:cb"));
+
+                latencyMonitor.test();
+
+                System.out.println("done with test");
+
+                //packetSender.sendPacket(new MacAddress("ae:bd:c7:94:15:ef"), new MacAddress("82:fe:07:dc:cb:cb"));
             }
         }, 1, TimeUnit.MINUTES);
 

@@ -70,10 +70,10 @@ public class PacketProcessing implements PacketProcessingListener {
         String srcMac = PacketParsingUtils.rawMacToString(srcMacRaw);
 
 
-        System.out.println(srcMac);
 
 
         if(srcMac.equals("00:00:00:00:00:09")) {
+            System.out.println("pacekt addrwess matched");
             Long timeNow = System.currentTimeMillis();
             Long latency = timeNow - PacketSender.sentTime;
 

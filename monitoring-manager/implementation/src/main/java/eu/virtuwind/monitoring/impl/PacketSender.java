@@ -54,6 +54,7 @@ public class PacketSender {
     public boolean sendPacket(long queue, String outputNodeConnector, String nodeId) {
 
 
+        System.out.println("inside send packet");
 
 
         MacAddress srcMacAddress = new MacAddress("00:00:00:00:00:09");
@@ -62,13 +63,16 @@ public class PacketSender {
         String NODE_ID = nodeId;
         String nodeConnectorId = outputNodeConnector.split(":")[2];
 
+        System.out.println("string spli done");
+
         NodeRef ref = createNodeRef(NODE_ID);
+        System.out.println("noderef created");
         NodeConnectorId ncId = new NodeConnectorId(outputNodeConnector);
         NodeConnectorKey nodeConnectorKey = new NodeConnectorKey(ncId);
         NodeConnectorRef nEgressConfRef = new NodeConnectorRef(createNodeConnRef(NODE_ID, nodeConnectorKey));
 
 
-
+        System.out.println("all node ref done");
 
         byte[] lldpFrame = LLDPUtil.buildLldpFrame(new NodeId(nodeId),
                 new NodeConnectorId(outputNodeConnector), srcMacAddress, Long.parseLong(nodeConnectorId) );
@@ -106,6 +110,7 @@ public class PacketSender {
             actions.add(outputNodeConnectorAction);
            // actions.add(actionBuilder.build());
 
+        System.out.println("actions built");
 
             TransmitPacketInput packet = new TransmitPacketInputBuilder()
                     .setEgress(nEgressConfRef)
@@ -113,6 +118,8 @@ public class PacketSender {
                     .setPayload(lldpFrame)
                     .setAction(actions)
                     .build();
+
+        System.out.println("about to transmit");
 
             Future<RpcResult<Void>> future = packetProcessingService.transmitPacket(packet);
             try {
@@ -123,6 +130,7 @@ public class PacketSender {
                     System.out.println("Is Successful");
                     return true;
                 } else {
+                    System.out.println("failed and error is " + future.get().getErrors().toString());
                     return false;
                 }
 
