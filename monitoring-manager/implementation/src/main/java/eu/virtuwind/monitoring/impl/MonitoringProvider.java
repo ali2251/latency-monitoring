@@ -30,20 +30,27 @@ public class MonitoringProvider implements BindingAwareProvider, AutoCloseable {
     private NotificationProviderService notificationService;
 
     public MonitoringProvider(DataBroker dataBroker, RpcProviderRegistry rpcProviderRegistry,
-                              NotificationProviderService notificationService) {
+                              NotificationProviderService notificationService1) {
         this.dataBroker = dataBroker;
         this.salFlowService = rpcProviderRegistry.getRpcService(SalFlowService.class);
-        this.notificationService = notificationService;
+        this.notificationService = notificationService1;
+
 
         PacketProcessingService packetProcessingService = rpcProviderRegistry.getRpcService(PacketProcessingService.class);
-        System.out.println("Module Loaded Up");
-        //SwitchConfigurator flow = new SwitchConfigurator(salFlowService, true, "10.0.0.1", "10.0.0.2");
+        System.out.println("Resource Monitor Loaded Up");
+        LOG.info("Resource Monitor loaded up");
+
+
         PacketProcessing packetProcessing = new PacketProcessing();
         notificationService.registerNotificationListener(packetProcessing);
 
+
         final PacketSender packetSender = new PacketSender(packetProcessingService);
 
-        final LatencyMonitor latencyMonitor = new LatencyMonitor(dataBroker, packetProcessingService);
+        final LatencyMonitor latencyMonitor = new LatencyMonitor(dataBroker, packetSender);
+
+        final ResourceMonitor resourceMonitor = new ResourceMonitor(dataBroker, latencyMonitor);
+
 
         final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
         executor.schedule(new Runnable() {
@@ -52,7 +59,7 @@ public class MonitoringProvider implements BindingAwareProvider, AutoCloseable {
                 System.out.println("meow");
                 LOG.info("Meow");
 
-                latencyMonitor.test();
+                System.out.println( resourceMonitor.getAllLinksWithQos());
 
                 System.out.println("done with test");
 

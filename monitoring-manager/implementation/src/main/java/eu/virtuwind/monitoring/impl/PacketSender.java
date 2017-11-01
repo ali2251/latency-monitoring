@@ -1,47 +1,34 @@
 package eu.virtuwind.monitoring.impl;
 
 
-import com.google.common.collect.ImmutableList;
-import org.opendaylight.openflowplugin.api.OFConstants;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Uri;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
-
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetQueueActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.output.action._case.OutputActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.queue.action._case.SetQueueActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.Action;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.ActionBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.ActionKey;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.OutputPortValues;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.*;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnector;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnectorKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeKey;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.openflow.common.types.rev130731.PortNumber;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.packet.chain.Packet;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.packet.chain.packet.RawPacketBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketProcessingService;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.RawPacket;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.TransmitPacketInput;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.TransmitPacketInputBuilder;
-import org.opendaylight.yangtools.yang.binding.DataContainer;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import static org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.KnownEtherType.Arp;
 
 
 public class PacketSender {
 
-    private  PacketProcessingService packetProcessingService;
+    private PacketProcessingService packetProcessingService;
     private Logger LOG = LoggerFactory.getLogger(PacketSender.class);
 
     public static Long sentTime = 0L;
@@ -49,30 +36,29 @@ public class PacketSender {
 
     public PacketSender(PacketProcessingService packetProcessingService){
         this.packetProcessingService = packetProcessingService;
+
     }
 
     public boolean sendPacket(long queue, String outputNodeConnector, String nodeId) {
 
 
-        System.out.println("inside send packet");
 
-
-        MacAddress srcMacAddress = new MacAddress("00:00:00:00:00:09");
+        MacAddress srcMacAddress = new MacAddress("BA:DB:AD:BA:DB:AD");
 
 
         String NODE_ID = nodeId;
         String nodeConnectorId = outputNodeConnector.split(":")[2];
 
-        System.out.println("string spli done");
+
 
         NodeRef ref = createNodeRef(NODE_ID);
-        System.out.println("noderef created");
+
         NodeConnectorId ncId = new NodeConnectorId(outputNodeConnector);
         NodeConnectorKey nodeConnectorKey = new NodeConnectorKey(ncId);
         NodeConnectorRef nEgressConfRef = new NodeConnectorRef(createNodeConnRef(NODE_ID, nodeConnectorKey));
 
 
-        System.out.println("all node ref done");
+
 
         byte[] lldpFrame = LLDPUtil.buildLldpFrame(new NodeId(nodeId),
                 new NodeConnectorId(outputNodeConnector), srcMacAddress, Long.parseLong(nodeConnectorId) );
@@ -110,7 +96,7 @@ public class PacketSender {
             actions.add(outputNodeConnectorAction);
            // actions.add(actionBuilder.build());
 
-        System.out.println("actions built");
+
 
             TransmitPacketInput packet = new TransmitPacketInputBuilder()
                     .setEgress(nEgressConfRef)
@@ -119,15 +105,13 @@ public class PacketSender {
                     .setAction(actions)
                     .build();
 
-        System.out.println("about to transmit");
+
 
             Future<RpcResult<Void>> future = packetProcessingService.transmitPacket(packet);
             try {
                 if (future.get().isSuccessful()) {
                     sentTime = System.currentTimeMillis();
-                    System.out.println("sent time is: " + sentTime);
-                    System.out.println( future.get().isSuccessful());
-                    System.out.println("Is Successful");
+
                     return true;
                 } else {
                     System.out.println("failed and error is " + future.get().getErrors().toString());

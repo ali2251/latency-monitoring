@@ -7,19 +7,16 @@ import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketProcessingService;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.Topology;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NetworkTopology;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.TopologyId;
+import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.Topology;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.TopologyKey;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Link;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-
 
 
 public class LatencyMonitor {
@@ -29,117 +26,70 @@ public class LatencyMonitor {
     public static Long latency = -1L;
 
     private static HashMap<Link, Long> latencies = new HashMap<>();
-    private static  HashMap<Link, Long> jitters = new HashMap<>();
+    private static HashMap<Link, Long> jitters = new HashMap<>();
     private static ArrayList<Link> links = new ArrayList<>();
     private static PacketProcessingService packetProcessingService;
+    private static PacketSender packetSender;
 
-    public LatencyMonitor(DataBroker dataBroker, PacketProcessingService packetProcessingService1){
-        packetProcessingService = packetProcessingService1;
+    public LatencyMonitor(DataBroker dataBroker, PacketSender packetSender1) {
         db = dataBroker;
-
+        packetSender = packetSender1;
     }
 
 
 
-    public void test() {
-
-        MeasureNextLink();
+    public Long MeasureNextLink(Link link) {
 
 
+        latency = -10000000L;
+        String node_id = link.getSource().getSourceNode().getValue();
+        String node_connector_id = link.getSource().getSourceTp().getValue();
 
 
+        boolean success = packetSender.sendPacket(0, node_connector_id, node_id);
 
 
-        MeasureNextLinkJitter();
+        while (latency.equals(-10000000L)) {
+            //waiting
+            System.out.print("");
 
-
-
-        System.out.println("All Done");
-
-    }
-
-
-    public void MeasureNextLink() {
-
-        List<Link> links = getAllLinks();
-
-        System.out.println(links.toString());
-
-        PacketSender packetSender = new PacketSender(packetProcessingService);
-
-        //remove host links
-        for(Link link: links) {
-            if(link.getSource().getSourceTp().getValue().contains("host")) {
-                links.remove(link);
-                System.out.println("link removed");
-            }
         }
+        //latency is now not -1
 
-        for(Link link: links) {
-
-            System.out.println("iterating over links");
-            latency = -1L;
-            String node_id = link.getSource().getSourceNode().getValue();
-            String node_connector_id = link.getSource().getSourceTp().getValue();
-
-            System.out.println("node connector id: " + node_connector_id);
-            System.out.println("node is: " + node_id);
-
-            boolean success = packetSender.sendPacket(0, node_connector_id,node_id  );
-            System.out.println("success is: " + success);
-            while(latency == -1) {
-                //waiting
-            }
-            //latency is now not -1
-            System.out.println("went past while loop and latency is: " + latency);
-            latencies.put(link, latency);
-            //links.add(link);
-        }
+        return latency;
 
 
     }
 
 
-    public void MeasureNextLinkJitter() {
+    public Long MeasureNextLinkJitter(Link link) {
 
-        List<Link> links = getAllLinks();
+        latency = -10000000L;
+        String node_id = link.getSource().getSourceNode().getValue();
+        String node_connector_id = link.getSource().getSourceTp().getValue();
 
-        PacketSender packetSender = new PacketSender(packetProcessingService);
-
-        //remove host links
-        for(Link link: links) {
-            if(link.getSource().getSourceTp().getValue().contains("host")) {
-                links.remove(link);
-            }
-        }
-
-        for(Link link: links) {
-            latency = -1L;
-            String node_id = link.getSource().getSourceNode().getValue();
-            String node_connector_id = link.getSource().getSourceTp().getValue();
-
-            boolean success = packetSender.sendPacket(0, node_connector_id,node_id  );
-            while(latency == -1) {
-                //waiting
-            }
-            //latency is now not -1
-            Long latency1 = latency;
-
-            latency = -1L;
-            packetSender.sendPacket(0, node_connector_id,node_id  );
-            while(latency == -1) {
-                //waiting
-            }
-            Long latency2 = latency;
-
-            //jitter is an absolute value
-            Long jitter = Math.abs(latency2 - latency1);
-
-            System.out.println("jitter is: " + jitter);
-
-            jitters.put(link, jitter);
+        boolean success = packetSender.sendPacket(0, node_connector_id, node_id);
+        while (latency.equals(-10000000L)) {
+            //waiting
+            System.out.print("");
 
         }
+        //latency is now not -1
+        Long latency1 = latency;
+
+        latency = -1L;
+        packetSender.sendPacket(0, node_connector_id, node_id);
+        while (latency.equals(-10000000L)) {
+            //waiting
+            System.out.print("");
+        }
+        Long latency2 = latency;
+
+        //jitter is an absolute value
+        Long jitter = Math.abs(latency2 - latency1);
+
+
+        return jitter;
 
 
     }
@@ -162,12 +112,10 @@ public class LatencyMonitor {
         } catch (Exception e) {
 
 
-
             return linkList;
         }
 
     }
-
 
 
 }

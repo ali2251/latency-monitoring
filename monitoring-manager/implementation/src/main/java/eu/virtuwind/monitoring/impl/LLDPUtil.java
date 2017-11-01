@@ -1,22 +1,18 @@
 package eu.virtuwind.monitoring.impl;
 
-import static org.opendaylight.controller.liblldp.LLDPTLV.CUSTOM_TLV_SUB_TYPE_CUSTOM_SEC;
-import static org.opendaylight.openflowplugin.applications.topology.lldp.utils.LLDPDiscoveryUtils.getValueForLLDPPacketIntegrityEnsuring;
-
-import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
 import org.apache.commons.lang3.StringUtils;
-import org.opendaylight.controller.liblldp.EtherTypes;
-import org.opendaylight.controller.liblldp.Ethernet;
-import org.opendaylight.controller.liblldp.HexEncode;
-import org.opendaylight.controller.liblldp.LLDP;
-import org.opendaylight.controller.liblldp.LLDPTLV;
-import org.opendaylight.controller.liblldp.PacketException;
+import org.opendaylight.controller.liblldp.*;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+
+import static org.opendaylight.controller.liblldp.LLDPTLV.CUSTOM_TLV_SUB_TYPE_CUSTOM_SEC;
+import static org.opendaylight.openflowplugin.applications.topology.lldp.utils.LLDPDiscoveryUtils.getValueForLLDPPacketIntegrityEnsuring;
 
 /**
  * Utility class for dealing with LLDP packets.
