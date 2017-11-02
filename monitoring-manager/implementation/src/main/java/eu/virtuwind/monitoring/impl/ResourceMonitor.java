@@ -24,6 +24,11 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.opendaylight.yang.gen.v1.urn.eu.virtuwind.monitoring.rev150722.*;
+import org.opendaylight.yangtools.yang.common.RpcResult;
+import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
+import java.util.concurrent.Future;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +41,7 @@ import java.util.List;
  * As well as providing a translation from an IP address to a NodeID
  */
 
-public class ResourceMonitor {
+public class ResourceMonitor implements MonitoringService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResourceMonitor.class);
 
@@ -65,6 +70,14 @@ public class ResourceMonitor {
         return resourceMonitor;
     }
 
+    public Future<RpcResult<GetStatsOutput>> getStats(GetStatsInput input) {
+
+        GetStatsOutputBuilder output = new GetStatsOutputBuilder();
+        output.setStats(getAllLinksWithQos().toString());
+        return RpcResultBuilder.success(output.build()).buildFuture();
+        //setStats
+
+    }
 
     /**
      * Recieve DataBroker from Path-Manager

@@ -48,7 +48,7 @@ public class PacketProcessing implements PacketProcessingListener {
                 if (srcMac.equals("BA:DB:AD:BA:DB:AD")) {
                     //  System.out.println("pacekt addrwess matched");
 
-                    Long timeNow = System.currentTimeMillis();
+                    Long timeNow = System.nanoTime();
 
                     //    System.out.println("received timed: " + timeNow);
 

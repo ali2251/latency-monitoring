@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+
+import org.opendaylight.yang.gen.v1.urn.eu.virtuwind.monitoring.rev150722.*;
+import org.opendaylight.controller.sal.binding.api.BindingAwareBroker.RpcRegistration;
+
 public class MonitoringProvider implements BindingAwareProvider, AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(MonitoringProvider.class);
@@ -28,13 +32,15 @@ public class MonitoringProvider implements BindingAwareProvider, AutoCloseable {
     private DataBroker dataBroker;
     private SalFlowService salFlowService;
     private NotificationProviderService notificationService;
+    private final RpcProviderRegistry rpcProviderRegistry;
+    private RpcRegistration<MonitoringService> serviceRegistration;
 
     public MonitoringProvider(DataBroker dataBroker, RpcProviderRegistry rpcProviderRegistry,
                               NotificationProviderService notificationService1) {
         this.dataBroker = dataBroker;
         this.salFlowService = rpcProviderRegistry.getRpcService(SalFlowService.class);
         this.notificationService = notificationService1;
-
+        this.rpcProviderRegistry = rpcProviderRegistry;
 
         PacketProcessingService packetProcessingService = rpcProviderRegistry.getRpcService(PacketProcessingService.class);
         System.out.println("Resource Monitor Loaded Up");
@@ -50,6 +56,10 @@ public class MonitoringProvider implements BindingAwareProvider, AutoCloseable {
         final LatencyMonitor latencyMonitor = new LatencyMonitor(dataBroker, packetSender);
 
         final ResourceMonitor resourceMonitor = new ResourceMonitor(dataBroker, latencyMonitor);
+
+
+        serviceRegistration = rpcProviderRegistry.
+                addRpcImplementation(MonitoringService.class, new ResourceMonitor(dataBroker, latencyMonitor));
 
 
         final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);

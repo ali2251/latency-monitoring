@@ -110,7 +110,7 @@ public class PacketSender {
             Future<RpcResult<Void>> future = packetProcessingService.transmitPacket(packet);
             try {
                 if (future.get().isSuccessful()) {
-                    sentTime = System.currentTimeMillis();
+                    sentTime = System.nanoTime();
 
                     return true;
                 } else {
