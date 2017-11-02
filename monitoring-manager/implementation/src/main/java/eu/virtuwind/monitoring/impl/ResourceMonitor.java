@@ -70,7 +70,7 @@ public class ResourceMonitor implements MonitoringService {
         return resourceMonitor;
     }
 
-    public Future<RpcResult<GetStatsOutput>> getStats(GetStatsInput input) {
+    public Future<RpcResult<GetStatsOutput>> getStats() {
 
         GetStatsOutputBuilder output = new GetStatsOutputBuilder();
         output.setStats(getAllLinksWithQos().toString());

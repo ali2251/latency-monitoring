@@ -9,9 +9,6 @@ import java.util.concurrent.Future;
  * <br>(Source path: <i>META-INF/yang/monitoring.yang</i>):
  * <pre>
  * rpc get-stats {
- *     input {
- *     }
- *     
  *     output {
  *         leaf stats {
  *             type string;
@@ -29,7 +26,7 @@ public interface MonitoringService
 
 
 
-    Future<RpcResult<GetStatsOutput>> getStats(GetStatsInput input);
+    Future<RpcResult<GetStatsOutput>> getStats();
 
 }
 

@@ -15,9 +15,7 @@ module monitoring {
 
 
      rpc get-stats {
-            input {
 
-            }
             output {
                 leaf stats {
                     type string;
